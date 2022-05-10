@@ -1,0 +1,94 @@
+<% raise "Packet must be at least 4 bytes" if num_cmd_bytes_per_packet.to_i < 4 %>
+<% avg_item_num_bytes = (num_cmd_bytes_per_packet.to_f / num_cmd_items_per_packet.to_f).round %>
+<% num_int1 = 0; num_int8 = 0; num_int16 = 0; num_int32 = 0; num_flt32 = 0; num_flt64 = 0; num_string = 0; num_block = 0; %>
+<% packet_num_bytes = 4 %>
+<% packet_num_items = 1 %>
+
+# Start with 10 percent each data type
+<% string_byte_size = avg_item_num_bytes; block_byte_size = string_byte_size %>
+<% string_bit_size = string_byte_size * 8; block_bit_size = string_bit_size; %>
+<% num_int8 = (0.1 * num_cmd_items_per_packet.to_f).to_i; packet_num_bytes += num_int8; packet_num_items += num_int8 %>
+<% num_int16 = (0.1 * num_cmd_items_per_packet.to_f).to_i; packet_num_bytes += num_int16 * 2; packet_num_items += num_int16 %>
+<% num_int32 = (0.1 * num_cmd_items_per_packet.to_f).to_i; packet_num_bytes += num_int32 * 4; packet_num_items += num_int32 %>
+<% num_uint8 = (0.1 * num_cmd_items_per_packet.to_f).to_i; packet_num_bytes += num_uint8; packet_num_items += num_uint8 %>
+<% num_uint16 = (0.1 * num_cmd_items_per_packet.to_f).to_i; packet_num_bytes += num_uint16 * 2; packet_num_items += num_uint16 %>
+<% num_uint32 = (0.1 * num_cmd_items_per_packet.to_f).to_i; packet_num_bytes += num_uint32 * 4; packet_num_items += num_uint32 %>
+<% num_flt32 = (0.1 * num_cmd_items_per_packet.to_f).to_i; packet_num_bytes += num_flt32 * 4; packet_num_items += num_flt32 %>
+<% num_flt64 = (0.1 * num_cmd_items_per_packet.to_f).to_i; packet_num_bytes += num_flt64 * 8; packet_num_items += num_flt64 %>
+<% num_string = (0.1 * num_cmd_items_per_packet.to_f).to_i; packet_num_bytes += num_string * string_byte_size; packet_num_items += num_string %>
+<% num_block = (0.1 * num_cmd_items_per_packet.to_f).to_i; packet_num_bytes += num_block * block_byte_size; packet_num_items += num_block %>
+
+# Handle not enough items
+<% if packet_num_items < (num_cmd_items_per_packet.to_i - 1) %>
+<%   num_int1 = (num_cmd_items_per_packet.to_i - packet_num_items - 1).abs %>
+<% end %>
+
+# Handle too many bytes
+<% while packet_num_bytes > num_cmd_bytes_per_packet.to_i %>
+<%   num_int8 -=1; packet_num_bytes -= 1; num_int1 += 1 %>
+<%   break if packet_num_bytes <= num_cmd_bytes_per_packet.to_i %>
+<%   num_int16 -=1; packet_num_bytes -= 2; num_int1 += 1 %>
+<%   break if packet_num_bytes <= num_cmd_bytes_per_packet.to_i %>
+<%   num_int32 -=1; packet_num_bytes -= 4; num_int1 += 1 %>
+<%   break if packet_num_bytes <= num_cmd_bytes_per_packet.to_i %>
+<%   num_uint8 -=1; packet_num_bytes -= 1; num_int1 += 1 %>
+<%   break if packet_num_bytes <= num_cmd_bytes_per_packet.to_i %>
+<%   num_uint16 -=1; packet_num_bytes -= 2; num_int1 += 1 %>
+<%   break if packet_num_bytes <= num_cmd_bytes_per_packet.to_i %>
+<%   num_uint32 -=1; packet_num_bytes -= 4; num_int1 += 1 %>
+<%   break if packet_num_bytes <= num_cmd_bytes_per_packet.to_i %>
+<%   num_flt32 -=1; packet_num_bytes -= 4; num_int1 += 1 %>
+<%   break if packet_num_bytes <= num_cmd_bytes_per_packet.to_i %>
+<%   num_flt64 -=1; packet_num_bytes -= 8; num_int1 += 1 %>
+<%   break if packet_num_bytes <= num_cmd_bytes_per_packet.to_i %>
+<%   num_string -=1; packet_num_bytes -= string_byte_size; num_int1 += 1 %>
+<%   break if packet_num_bytes <= num_cmd_bytes_per_packet.to_i %>
+<%   num_block -=1; packet_num_bytes -= block_byte_size; num_int1 += 1 %>
+<%   break if packet_num_bytes <= num_cmd_bytes_per_packet.to_i %>
+<% end %>
+
+# Last item fills packet to size
+
+<% num_cmd_packets.to_i.times do |pkt_index| %>
+
+  COMMAND <%= target_name %> PKT<%= pkt_index %> BIG_ENDIAN "Simulated Cmd Packet <%= pkt_index %>"
+    APPEND_ID_PARAMETER PKTID 32 UINT <%= pkt_index %> <%= pkt_index %> <%= pkt_index %> "Packet Id"
+    <% num_int8.times do |item_index| %>
+      APPEND_PARAMETER INT8_<%= item_index %> 8 INT MIN MAX 0 "Int8 Item"
+    <% end %>
+    <% num_int16.times do |item_index| %>
+      APPEND_PARAMETER INT16_<%= item_index %> 16 INT MIN MAX 0 "Int16 Item"
+    <% end %>
+    <% num_int32.times do |item_index| %>
+      APPEND_PARAMETER INT32_<%= item_index %> 32 INT MIN MAX 0 "Int32 Item"
+    <% end %>
+    <% num_uint8.times do |item_index| %>
+      APPEND_PARAMETER UINT8_<%= item_index %> 8 UINT MIN MAX 0 "Uint8 Item"
+    <% end %>
+    <% num_uint16.times do |item_index| %>
+      APPEND_PARAMETER UINT16_<%= item_index %> 16 UINT MIN MAX 0 "Uint16 Item"
+    <% end %>
+    <% num_uint32.times do |item_index| %>
+      APPEND_PARAMETER UINT32_<%= item_index %> 32 UINT MIN MAX 0 "Uint32 Item"
+    <% end %>
+    <% num_flt32.times do |item_index| %>
+      APPEND_PARAMETER FLT32_<%= item_index %> 32 FLOAT MIN MAX 0 "Flt32 Item"
+    <% end %>
+    <% num_flt64.times do |item_index| %>
+      APPEND_PARAMETER FLT64_<%= item_index %> 64 FLOAT MIN MAX 0 "Flt64 Item"
+    <% end %>
+    <% num_string.times do |item_index| %>
+      APPEND_PARAMETER STRING_<%= item_index %> <%= string_bit_size %> STRING "" "String Item"
+    <% end %>
+    <% num_block.times do |item_index| %>
+      APPEND_PARAMETER BLOCK_<%= item_index %> <%= block_bit_size %> BLOCK "" "Block Item"
+    <% end %>
+    <% num_int1.times do |item_index| %>
+      APPEND_PARAMETER INT1_<%= item_index %> 1 INT MIN MAX 0 "Int1 Item"
+    <% end %>
+    <% if (num_int1 % 8) != 0 %>
+      APPEND_PARAMETER BYTE_ALIGN <%= 8 - (num_int1 % 8) %> INT MIN MAX 0 "Byte align"
+    <% end %>
+    APPEND_PARAMETER LAST_ITEM <%= (num_cmd_bytes_per_packet.to_i - packet_num_bytes) * 8 %> BLOCK "" "Last filler item"
+
+<% end %>

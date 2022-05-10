@@ -1,0 +1,19 @@
+# Note: This plugin includes 4 targets in one plugin to make it easy to install
+# the COSMOS demo with one plugin.  Generally it is better to only have one
+# target per plugin
+
+VARIABLE sim_target_name LOADSIM
+VARIABLE num_tlm_packets 10
+VARIABLE num_tlm_items_per_packet 1000
+VARIABLE num_tlm_derived_items_per_packet 5
+VARIABLE num_tlm_bytes_per_packet 1000
+VARIABLE num_each_tlm_packet_per_sec 10
+VARIABLE num_cmd_packets 10
+VARIABLE num_cmd_items_per_packet 20
+VARIABLE num_cmd_derived_items_per_packet 5
+VARIABLE num_cmd_bytes_per_packet 100
+
+TARGET LOADSIM <%= sim_target_name %>
+
+INTERFACE INT_<%= sim_target_name %> simulated_target_interface.rb sim_loadsim.rb
+  MAP_TARGET <%= sim_target_name %>
