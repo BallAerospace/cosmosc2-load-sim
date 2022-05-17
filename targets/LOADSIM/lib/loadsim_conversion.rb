@@ -22,7 +22,7 @@ require 'cosmos/conversions/polynomial_conversion'
 module Cosmos
   class LoadsimConversion < PolynomialConversion
     def initialize(item_name, *coeff_array)
-      super(coeff_array)
+      super(*coeff_array)
       @item_name = item_name
     end
 
